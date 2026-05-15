@@ -20,7 +20,7 @@ const style = css`
     --mmp-button-color: var(--mini-media-player-button-color, rgba(255, 255, 255, 0.25));
     --mmp-icon-color: var(
       --mini-media-player-icon-color,
-      var(--mini-media-player-base-color, var(--state-icon-color, #44739e))
+      var(--mini-media-player-base-color, var(--state-icon-color, var(--paper-item-icon-color, #44739e)))
     );
     --mmp-icon-active-color: var(--paper-item-icon-active-color, --mmp-active-color);
     --mmp-info-opacity: 0.75;
