@@ -116,20 +116,33 @@ class MiniMediaPlayerMediaControls extends LitElement {
   }
 
   renderVolSlider(muted) {
+    const sliderClasses = classMap({
+      '--webawesome': this.usesWebAwesomeSlider,
+      'mmp-media-controls__volume__slider': true,
+    });
+
     return html`
       ${this.renderMuteButton(muted)}
-      <ha-slider
-        @change=${this.handleVolumeChange}
-        @click=${e => e.stopPropagation()}
-        .withTooltip=${false}
-        ?disabled=${muted}
-        min=${this.minVol} max=${this.maxVol}
-        .value=${this.player.vol * 100}
-        step=${this.config.volume_step || 1}
-        dir=${'ltr'}
-        ignore-bar-touch pin labeled>
-      </ha-slider>
+      <div class=${sliderClasses}>
+        <ha-slider
+          @change=${this.handleVolumeChange}
+          @click=${e => e.stopPropagation()}
+          .withTooltip=${false}
+          ?disabled=${muted}
+          min=${this.minVol} max=${this.maxVol}
+          .value=${this.player.vol * 100}
+          step=${this.config.volume_step || 1}
+          dir=${'ltr'}
+          ignore-bar-touch pin labeled>
+        </ha-slider>
+      </div>
     `;
+  }
+
+  get usesWebAwesomeSlider() {
+    const SliderElement = customElements.get('ha-slider');
+    const sliderPrototype = SliderElement && SliderElement.prototype;
+    return !!sliderPrototype && ('withTooltip' in sliderPrototype || 'showTooltip' in sliderPrototype);
   }
 
   renderVolButtons(muted) {
@@ -284,10 +297,10 @@ class MiniMediaPlayerMediaControls extends LitElement {
           align-self: center;
           box-sizing: border-box;
           display: block;
-          flex: 1 1 100px;
+          flex: 1 1 auto;
           max-width: none;
-          min-width: 100px;
-          min-inline-size: 100px;
+          min-width: 0;
+          min-inline-size: 0;
           width: 100%;
           --md-sys-color-primary: var(--mmp-accent-color);
           --md-slider-active-track-color: var(--mmp-accent-color);
@@ -295,6 +308,16 @@ class MiniMediaPlayerMediaControls extends LitElement {
           --ha-slider-thumb-color: var(--mmp-accent-color);
           --ha-slider-indicator-color: var(--mmp-accent-color);
           color: var(--mmp-text-color);
+        }
+        .mmp-media-controls__volume__slider {
+          align-items: center;
+          display: flex;
+          flex: 1 1 100px;
+          min-width: 100px;
+          min-inline-size: 100px;
+        }
+        .mmp-media-controls__volume__slider.--webawesome ha-slider {
+          transform: translateY(calc(var(--mmp-unit) * 0.1));
         }
         ha-icon-button {
           min-width: var(--mmp-unit);
@@ -308,9 +331,12 @@ class MiniMediaPlayerMediaControls extends LitElement {
           justify-content: flex-start;
         }
         .mmp-media-controls__volume__level {
+          align-items: center;
+          display: flex;
           flex: 0 0 var(--mmp-unit);
-          line-height: var(--mmp-unit);
-          text-align: right;
+          height: var(--mmp-unit);
+          justify-content: flex-end;
+          line-height: normal;
           white-space: nowrap;
         }
         .mmp-media-controls__volume.--buttons {
