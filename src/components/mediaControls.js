@@ -304,10 +304,11 @@ class MiniMediaPlayerMediaControls extends LitElement {
           max-height: var(--mmp-unit);
           min-width: 0;
           align-items: center;
+          column-gap: calc(var(--mmp-unit) * 0.15);
           justify-content: flex-start;
         }
         .mmp-media-controls__volume__level {
-          flex: 0 0 calc(var(--mmp-unit) * 0.85);
+          flex: 0 0 var(--mmp-unit);
           line-height: var(--mmp-unit);
           text-align: right;
           white-space: nowrap;
