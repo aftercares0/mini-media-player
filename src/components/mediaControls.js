@@ -367,6 +367,7 @@ class MiniMediaPlayerMediaControls extends LitElement {
           height: var(--mmp-unit);
           margin: 0;
           padding: 0;
+          transform: translateY(calc(var(--mmp-unit) * 0.075));
           --mmp-range-fill-color: var(--mmp-accent-color);
           --mmp-range-track-color: var(--mmp-text-color);
           --mmp-range-thumb-size: calc(var(--mmp-unit) * 0.35);
