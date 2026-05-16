@@ -121,6 +121,7 @@ class MiniMediaPlayerMediaControls extends LitElement {
       <ha-slider
         @change=${this.handleVolumeChange}
         @click=${e => e.stopPropagation()}
+        .withTooltip=${false}
         ?disabled=${muted}
         min=${this.minVol} max=${this.maxVol}
         .value=${this.player.vol * 100}
@@ -280,13 +281,13 @@ class MiniMediaPlayerMediaControls extends LitElement {
           justify-content: space-between;
         }
         ha-slider {
+          align-self: center;
           box-sizing: border-box;
+          display: block;
           flex: 1 1 100px;
-          height: var(--mmp-unit);
           max-width: none;
           min-width: 100px;
           min-inline-size: 100px;
-          overflow: hidden;
           width: 100%;
           --md-sys-color-primary: var(--mmp-accent-color);
           --md-slider-active-track-color: var(--mmp-accent-color);
@@ -303,6 +304,13 @@ class MiniMediaPlayerMediaControls extends LitElement {
           max-height: var(--mmp-unit);
           min-width: 0;
           align-items: center;
+          justify-content: flex-start;
+        }
+        .mmp-media-controls__volume__level {
+          flex: 0 0 calc(var(--mmp-unit) * 0.85);
+          line-height: var(--mmp-unit);
+          text-align: right;
+          white-space: nowrap;
         }
         .mmp-media-controls__volume.--buttons {
           justify-content: left;
