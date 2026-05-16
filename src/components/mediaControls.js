@@ -280,18 +280,28 @@ class MiniMediaPlayerMediaControls extends LitElement {
           justify-content: space-between;
         }
         ha-slider {
+          box-sizing: border-box;
+          flex: 1 1 100px;
+          height: var(--mmp-unit);
           max-width: none;
           min-width: 100px;
+          min-inline-size: 100px;
+          overflow: hidden;
           width: 100%;
-          --md-sys-color-primary: var(--mmp-accent-color); /* before 2025.10.0 */
-          color: var(--primary-text-color);
+          --md-sys-color-primary: var(--mmp-accent-color);
+          --md-slider-active-track-color: var(--mmp-accent-color);
+          --md-slider-handle-color: var(--mmp-accent-color);
+          --ha-slider-thumb-color: var(--mmp-accent-color);
+          --ha-slider-indicator-color: var(--mmp-accent-color);
+          color: var(--mmp-text-color);
         }
         ha-icon-button {
           min-width: var(--mmp-unit);
         }
         .mmp-media-controls__volume {
-          flex: 100;
+          flex: 100 1 0;
           max-height: var(--mmp-unit);
+          min-width: 0;
           align-items: center;
         }
         .mmp-media-controls__volume.--buttons {
@@ -300,6 +310,7 @@ class MiniMediaPlayerMediaControls extends LitElement {
         .mmp-media-controls__media {
           margin-right: 0;
           margin-left: auto;
+          min-width: 0;
           justify-content: inherit;
         }
         .mmp-media-controls__media[flow] {
