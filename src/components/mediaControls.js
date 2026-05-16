@@ -163,7 +163,7 @@ class MiniMediaPlayerMediaControls extends LitElement {
 
   renderVolLevel() {
     return html`
-      <span class="mmp-media-controls__volume__level">${this.vol}%</span>
+      <span class="mmp-media-controls__volume__level">${this.vol}</span>
     `;
   }
 
