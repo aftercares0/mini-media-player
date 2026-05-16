@@ -116,27 +116,52 @@ class MiniMediaPlayerMediaControls extends LitElement {
   }
 
   renderVolSlider(muted) {
-    const sliderClasses = classMap({
-      '--webawesome': this.usesWebAwesomeSlider,
-      'mmp-media-controls__volume__slider': true,
-    });
-
     return html`
       ${this.renderMuteButton(muted)}
-      <div class=${sliderClasses}>
-        <ha-slider
-          @change=${this.handleVolumeChange}
-          @click=${e => e.stopPropagation()}
-          .withTooltip=${false}
-          ?disabled=${muted}
-          min=${this.minVol} max=${this.maxVol}
-          .value=${this.player.vol * 100}
-          step=${this.config.volume_step || 1}
-          dir=${'ltr'}
-          ignore-bar-touch pin labeled>
-        </ha-slider>
+      <div class="mmp-media-controls__volume__slider">
+        ${this.usesWebAwesomeSlider ? this.renderNativeVolSlider(muted) : this.renderHaVolSlider(muted)}
       </div>
     `;
+  }
+
+  renderHaVolSlider(muted) {
+    return html`
+      <ha-slider
+        @change=${this.handleVolumeChange}
+        @click=${e => e.stopPropagation()}
+        ?disabled=${muted}
+        min=${this.minVol} max=${this.maxVol}
+        .value=${this.player.vol * 100}
+        step=${this.config.volume_step || 1}
+        dir=${'ltr'}
+        ignore-bar-touch pin labeled>
+      </ha-slider>
+    `;
+  }
+
+  renderNativeVolSlider(muted) {
+    return html`
+      <input
+        class="mmp-media-controls__volume__range"
+        type="range"
+        @input=${this.handleVolumeInput}
+        @change=${this.handleVolumeChange}
+        @click=${e => e.stopPropagation()}
+        ?disabled=${muted}
+        min=${this.minVol}
+        max=${this.maxVol}
+        .value=${String(this.player.vol * 100)}
+        step=${this.config.volume_step || 1}
+        style="--mmp-range-value: ${this.rangeValue}%"
+      />
+    `;
+  }
+
+  get rangeValue() {
+    const min = this.minVol;
+    const max = this.maxVol;
+    const value = Math.min(Math.max(this.player.vol * 100, min), max);
+    return ((value - min) / (max - min || 100)) * 100;
   }
 
   get usesWebAwesomeSlider() {
@@ -275,8 +300,20 @@ class MiniMediaPlayerMediaControls extends LitElement {
   }
 
   handleVolumeChange(ev) {
+    ev.stopPropagation();
     const vol = parseFloat(ev.target.value) / 100;
     this.player.setVolume(ev, vol);
+  }
+
+  handleVolumeInput(ev) {
+    ev.stopPropagation();
+    const target = ev.target;
+    const min = Number(target.min);
+    const max = Number(target.max);
+    const value = Number(target.value);
+    const range = max - min || 100;
+    const percent = Math.min(Math.max(((value - min) / range) * 100, 0), 100);
+    target.style.setProperty('--mmp-range-value', `${percent}%`);
   }
 
   static get styles() {
@@ -295,15 +332,18 @@ class MiniMediaPlayerMediaControls extends LitElement {
           flex: 1;
           justify-content: space-between;
         }
-        ha-slider {
+        ha-slider,
+        .mmp-media-controls__volume__range {
           align-self: center;
           box-sizing: border-box;
-          display: block;
           flex: 1 1 auto;
           max-width: none;
           min-width: 0;
           min-inline-size: 0;
           width: 100%;
+        }
+        ha-slider {
+          display: block;
           --md-sys-color-primary: var(--mmp-accent-color);
           --md-slider-active-track-color: var(--mmp-accent-color);
           --md-slider-handle-color: var(--mmp-accent-color);
@@ -318,8 +358,64 @@ class MiniMediaPlayerMediaControls extends LitElement {
           min-width: 100px;
           min-inline-size: 100px;
         }
-        .mmp-media-controls__volume__slider.--webawesome ha-slider {
-          transform: translateY(calc(var(--mmp-unit) * 0.1));
+        .mmp-media-controls__volume__range {
+          -webkit-appearance: none;
+          appearance: none;
+          background: transparent;
+          cursor: pointer;
+          display: block;
+          height: var(--mmp-unit);
+          margin: 0;
+          padding: 0;
+          --mmp-range-fill-color: var(--mmp-accent-color);
+          --mmp-range-track-color: var(--mmp-text-color);
+          --mmp-range-thumb-size: calc(var(--mmp-unit) * 0.35);
+          --mmp-range-track-height: 3px;
+        }
+        .mmp-media-controls__volume__range:disabled {
+          cursor: default;
+          opacity: 0.5;
+        }
+        .mmp-media-controls__volume__range::-webkit-slider-runnable-track {
+          background: linear-gradient(
+            to right,
+            var(--mmp-range-fill-color) 0%,
+            var(--mmp-range-fill-color) var(--mmp-range-value),
+            var(--mmp-range-track-color) var(--mmp-range-value),
+            var(--mmp-range-track-color) 100%
+          );
+          border: none;
+          border-radius: var(--mmp-range-track-height);
+          height: var(--mmp-range-track-height);
+        }
+        .mmp-media-controls__volume__range::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          background: var(--mmp-range-fill-color);
+          border: none;
+          border-radius: 50%;
+          height: var(--mmp-range-thumb-size);
+          margin-top: calc((var(--mmp-range-track-height) - var(--mmp-range-thumb-size)) / 2);
+          width: var(--mmp-range-thumb-size);
+        }
+        .mmp-media-controls__volume__range::-moz-range-track {
+          background: var(--mmp-range-track-color);
+          border: none;
+          border-radius: var(--mmp-range-track-height);
+          height: var(--mmp-range-track-height);
+        }
+        .mmp-media-controls__volume__range::-moz-range-progress {
+          background: var(--mmp-range-fill-color);
+          border: none;
+          border-radius: var(--mmp-range-track-height);
+          height: var(--mmp-range-track-height);
+        }
+        .mmp-media-controls__volume__range::-moz-range-thumb {
+          background: var(--mmp-range-fill-color);
+          border: none;
+          border-radius: 50%;
+          height: var(--mmp-range-thumb-size);
+          width: var(--mmp-range-thumb-size);
         }
         ha-icon-button {
           min-width: var(--mmp-unit);
