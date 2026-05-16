@@ -14,6 +14,7 @@ const sharedStyle = css`
     height: calc(var(--mmp-unit) * 0.6);
   }
   ha-icon-button {
+    --ha-icon-button-size: var(--mmp-unit);
     width: var(--mmp-unit);
     height: var(--mmp-unit);
     color: var(--mmp-text-color, var(--primary-text-color));
