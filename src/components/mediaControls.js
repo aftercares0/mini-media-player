@@ -118,13 +118,14 @@ class MiniMediaPlayerMediaControls extends LitElement {
   renderVolSlider(muted) {
     const rangeValue = this.rangeValue;
     const rangeFraction = rangeValue / 100;
+    const thumbOffset = 7 - (14 * rangeFraction);
     const useNativeSlider = this.usesWebAwesomeSlider;
 
     return html`
       ${this.renderMuteButton(muted)}
       <div
         class="mmp-media-controls__volume__slider"
-        style="--mmp-range-value: ${rangeValue}%; --mmp-range-fraction: ${rangeFraction};"
+        style="--mmp-range-value: ${rangeValue}%; --mmp-range-thumb-offset: ${thumbOffset}px;"
       >
         ${useNativeSlider
           ? html`${this.renderNativeVolSlider(muted)}${this.renderVolumeBubble()}`
@@ -156,6 +157,7 @@ class MiniMediaPlayerMediaControls extends LitElement {
         @input=${this.handleVolumeInput}
         @change=${this.handleVolumeChange}
         @click=${e => e.stopPropagation()}
+        @pointerup=${this.handleVolumePointerEnd}
         ?disabled=${muted}
         min=${this.minVol}
         max=${this.maxVol}
@@ -184,6 +186,10 @@ class MiniMediaPlayerMediaControls extends LitElement {
     const SliderElement = customElements.get('ha-slider');
     const sliderPrototype = SliderElement && SliderElement.prototype;
     return !!sliderPrototype && ('withTooltip' in sliderPrototype || 'showTooltip' in sliderPrototype);
+  }
+
+  updated() {
+    this.updateNativeVolumeSlider();
   }
 
   renderVolButtons(muted) {
@@ -323,15 +329,31 @@ class MiniMediaPlayerMediaControls extends LitElement {
 
   handleVolumeInput(ev) {
     ev.stopPropagation();
-    const target = ev.target;
+    this.updateNativeVolumeSlider(ev.target);
+  }
+
+  handleVolumePointerEnd(ev) {
+    requestAnimationFrame(() => ev.currentTarget.blur());
+  }
+
+  updateNativeVolumeSlider(target = this.shadowRoot.querySelector('.mmp-media-controls__volume__range')) {
+    if (!target) return;
+
     const min = Number(target.min);
     const max = Number(target.max);
     const value = Number(target.value);
     const range = max - min || 100;
     const percent = Math.min(Math.max(((value - min) / range) * 100, 0), 100);
+    const rangeHeight = parseFloat(getComputedStyle(target).height) || 24;
+    const thumbSize = rangeHeight * (0.35 / 0.6);
+    const thumbOffset = (thumbSize / 2) - (thumbSize * (percent / 100));
+    const wrapper = target.parentElement;
+    const bubbleContent = wrapper?.querySelector('.mmp-media-controls__volume__bubble__content');
+
     target.parentElement?.style.setProperty('--mmp-range-value', `${percent}%`);
-    target.parentElement?.style.setProperty('--mmp-range-fraction', `${percent / 100}`);
+    target.parentElement?.style.setProperty('--mmp-range-thumb-offset', `${thumbOffset}px`);
     target.style.setProperty('--mmp-range-value', `${percent}%`);
+    if (bubbleContent) bubbleContent.textContent = `${Math.round(value)}`;
   }
 
   static get styles() {
@@ -380,6 +402,7 @@ class MiniMediaPlayerMediaControls extends LitElement {
           position: relative;
           --mmp-range-state-layer-size: calc(var(--mmp-unit) * 0.6);
           --mmp-range-label-height: 28px;
+          --mmp-range-label-gap: 5px;
         }
         .mmp-media-controls__volume__range {
           -webkit-appearance: none;
@@ -390,10 +413,14 @@ class MiniMediaPlayerMediaControls extends LitElement {
           height: var(--mmp-range-state-layer-size);
           margin: 0;
           padding: 0;
+          touch-action: none;
           --mmp-range-fill-color: var(--mmp-accent-color);
           --mmp-range-track-color: var(--mmp-text-color);
           --mmp-range-thumb-size: calc(var(--mmp-unit) * 0.35);
           --mmp-range-track-height: 4px;
+        }
+        .mmp-media-controls__volume__range:focus {
+          outline: none;
         }
         .mmp-media-controls__volume__range:disabled {
           cursor: default;
@@ -450,7 +477,7 @@ class MiniMediaPlayerMediaControls extends LitElement {
             var(--mmp-accent-color, var(--md-sys-color-primary, var(--primary-color)))
           );
           border-radius: var(--md-sys-shape-corner-full, 9999px);
-          bottom: calc(50% + var(--mmp-range-state-layer-size) / 2);
+          bottom: calc(50% + var(--mmp-range-state-layer-size) / 2 + var(--mmp-range-label-gap));
           box-sizing: border-box;
           color: var(
             --md-slider-label-text-color,
@@ -470,14 +497,12 @@ class MiniMediaPlayerMediaControls extends LitElement {
             var(--md-sys-typescale-label-medium-weight, var(--md-ref-typeface-weight-medium, 500))
           );
           justify-content: center;
-          left: calc(
-            (var(--mmp-range-state-layer-size) / 2) +
-            ((100% - var(--mmp-range-state-layer-size)) * var(--mmp-range-fraction))
-          );
+          left: var(--mmp-range-value);
           line-height: var(
             --md-slider-label-text-line-height,
             var(--md-sys-typescale-label-medium-line-height, 1rem)
           );
+          margin-left: var(--mmp-range-thumb-offset, 0px);
           min-height: var(--mmp-range-label-height);
           min-width: var(--mmp-range-label-height);
           padding: 4px;
@@ -510,7 +535,7 @@ class MiniMediaPlayerMediaControls extends LitElement {
           z-index: 1;
         }
         .mmp-media-controls__volume__slider:hover .mmp-media-controls__volume__bubble,
-        .mmp-media-controls__volume__slider:focus-within .mmp-media-controls__volume__bubble,
+        .mmp-media-controls__volume__range:focus-visible + .mmp-media-controls__volume__bubble,
         .mmp-media-controls__volume__range:active + .mmp-media-controls__volume__bubble {
           transform: translateX(-50%) scale(1);
         }
