@@ -12,9 +12,9 @@ const style = css`
     --mmp-overlay-color: var(--mini-media-player-overlay-color, rgba(0, 0, 0, 0.5));
     --mmp-overlay-color-stop: var(--mini-media-player-overlay-color-stop, 25%);
     --mmp-overlay-base-color: var(--mini-media-player-overlay-base-color, #fff);
-    --mmp-overlay-accent-color: var(--mini-media-player-overlay-accent-color, --mmp-accent-color);
+    --mmp-overlay-accent-color: var(--mini-media-player-overlay-accent-color, var(--mmp-overlay-base-color));
     --mmp-text-color: var(--mini-media-player-base-color, var(--primary-text-color, #000));
-    --mmp-media-cover-info-color: var(--mini-media-player-media-cover-info-color, --mmp-text-color);
+    --mmp-media-cover-info-color: var(--mini-media-player-media-cover-info-color, var(--mmp-text-color));
     --mmp-text-color-inverted: var(--disabled-text-color);
     --mmp-active-color: var(--mmp-accent-color);
     --mmp-button-color: var(--mini-media-player-button-color, rgba(255, 255, 255, 0.25));
@@ -39,16 +39,14 @@ const style = css`
   }
   ha-card.--has-artwork[artwork='material'],
   ha-card.--has-artwork[artwork*='cover'] {
-    --mmp-accent-color: var(
-      --mini-media-player-overlay-accent-color,
-      var(--mini-media-player-accent-color, var(--accent-color, #f39c12))
-    );
+    --mmp-accent-color: var(--mmp-overlay-accent-color);
     --mmp-text-color: var(--mmp-overlay-base-color);
     --mmp-text-color-inverted: #000;
     --mmp-active-color: rgba(255, 255, 255, 0.5);
     --mmp-icon-color: var(--mmp-text-color);
     --mmp-icon-active-color: var(--mmp-text-color);
     --mmp-info-opacity: 0.75;
+    --ha-control-color: var(--mmp-overlay-accent-color);
     --disabled-color: var(--mini-media-player-overlay-color, rgba(255, 255, 255, 0.75)) !important;
     --mdc-theme-primary: var(--mmp-text-color);
     --mdc-theme-on-primary: var(--mmp-text-color);
