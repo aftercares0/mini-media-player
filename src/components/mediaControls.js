@@ -481,7 +481,7 @@ class MiniMediaPlayerMediaControls extends LitElement {
           box-sizing: border-box;
           color: var(
             --md-slider-label-text-color,
-            var(--md-sys-color-on-primary, var(--mmp-text-color-inverted, var(--text-primary-color, #fff)))
+            var(--md-sys-color-on-primary, var(--text-primary-color, #fff))
           );
           display: flex;
           font-family: var(
