@@ -353,7 +353,8 @@ class MiniMediaPlayer extends LitElement {
       ...(scale && { '--mmp-unit': `${40 * scale}px` }),
       ...(this.foregroundColor &&
         this.player.isActive && {
-        '--mmp-generated-accent-color': this.foregroundColor,
+        '--mmp-overlay-accent-color': `var(--mini-media-player-overlay-accent-color, ${this.foregroundColor})`,
+        '--ha-control-color': `var(--mini-media-player-overlay-accent-color, ${this.foregroundColor})`,
       }),
     });
   }
