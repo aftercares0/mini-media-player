@@ -12,7 +12,10 @@ const style = css`
     --mmp-overlay-color: var(--mini-media-player-overlay-color, rgba(0, 0, 0, 0.5));
     --mmp-overlay-color-stop: var(--mini-media-player-overlay-color-stop, 25%);
     --mmp-overlay-base-color: var(--mini-media-player-overlay-base-color, #fff);
-    --mmp-overlay-accent-color: var(--mini-media-player-overlay-accent-color, var(--mmp-overlay-base-color));
+    --mmp-overlay-accent-color: var(
+      --mini-media-player-overlay-accent-color,
+      var(--mmp-generated-accent-color, var(--mmp-overlay-base-color))
+    );
     --mmp-text-color: var(--mini-media-player-base-color, var(--primary-text-color, #000));
     --mmp-media-cover-info-color: var(--mini-media-player-media-cover-info-color, var(--mmp-text-color));
     --mmp-text-color-inverted: var(--disabled-text-color);

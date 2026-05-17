@@ -74,6 +74,7 @@ class MiniMediaPlayer extends LitElement {
   @state() private cardHeight = 0;
   @state() private foregroundColor = '';
   @state() private backgroundColor = '';
+  private colorPicture?: string;
 
   @state() private config!: MiniMediaPlayerConfiguration;
   @state() private _hass!: HomeAssistant;
@@ -350,6 +351,10 @@ class MiniMediaPlayer extends LitElement {
     const { scale } = this.config;
     return styleMap({
       ...(scale && { '--mmp-unit': `${40 * scale}px` }),
+      ...(this.foregroundColor &&
+        this.player.isActive && {
+        '--mmp-generated-accent-color': this.foregroundColor,
+      }),
     });
   }
 
@@ -424,17 +429,26 @@ class MiniMediaPlayer extends LitElement {
   }
 
   async setColors(): Promise<void> {
-    if (this.player.picture === this.picture) return;
+    const picture = this.player.picture;
+    if (picture === this.colorPicture) return;
 
-    if (!this.player.picture) {
+    this.colorPicture = picture;
+
+    if (!picture) {
       this.foregroundColor = '';
       this.backgroundColor = '';
       return;
     }
 
     try {
-      [this.foregroundColor, this.backgroundColor] = await colorsFromPicture(this.player.picture);
+      const [foregroundColor, backgroundColor] = await colorsFromPicture(picture);
+      if (this.player.picture !== picture) return;
+
+      this.foregroundColor = foregroundColor;
+      this.backgroundColor = backgroundColor;
     } catch (err) {
+      if (this.player.picture !== picture) return;
+
       // eslint-disable-next-line no-console
       console.error('Error getting Image Colors', err);
       this.foregroundColor = '';
