@@ -116,10 +116,19 @@ class MiniMediaPlayerMediaControls extends LitElement {
   }
 
   renderVolSlider(muted) {
+    const rangeValue = this.rangeValue;
+    const rangeFraction = rangeValue / 100;
+    const useNativeSlider = this.usesWebAwesomeSlider;
+
     return html`
       ${this.renderMuteButton(muted)}
-      <div class="mmp-media-controls__volume__slider">
-        ${this.usesWebAwesomeSlider ? this.renderNativeVolSlider(muted) : this.renderHaVolSlider(muted)}
+      <div
+        class="mmp-media-controls__volume__slider"
+        style="--mmp-range-value: ${rangeValue}%; --mmp-range-fraction: ${rangeFraction};"
+      >
+        ${useNativeSlider
+          ? html`${this.renderNativeVolSlider(muted)}${this.renderVolumeBubble()}`
+          : this.renderHaVolSlider(muted)}
       </div>
     `;
   }
@@ -152,8 +161,15 @@ class MiniMediaPlayerMediaControls extends LitElement {
         max=${this.maxVol}
         .value=${String(this.player.vol * 100)}
         step=${this.config.volume_step || 1}
-        style="--mmp-range-value: ${this.rangeValue}%"
       />
+    `;
+  }
+
+  renderVolumeBubble() {
+    return html`
+      <span class="mmp-media-controls__volume__bubble" aria-hidden="true">
+        <span class="mmp-media-controls__volume__bubble__content">${this.vol}</span>
+      </span>
     `;
   }
 
@@ -313,6 +329,8 @@ class MiniMediaPlayerMediaControls extends LitElement {
     const value = Number(target.value);
     const range = max - min || 100;
     const percent = Math.min(Math.max(((value - min) / range) * 100, 0), 100);
+    target.parentElement?.style.setProperty('--mmp-range-value', `${percent}%`);
+    target.parentElement?.style.setProperty('--mmp-range-fraction', `${percent / 100}`);
     target.style.setProperty('--mmp-range-value', `${percent}%`);
   }
 
@@ -355,8 +373,13 @@ class MiniMediaPlayerMediaControls extends LitElement {
           align-items: center;
           display: flex;
           flex: 1 1 100px;
+          height: var(--mmp-range-state-layer-size, calc(var(--mmp-unit) * 0.6));
           min-width: 100px;
           min-inline-size: 100px;
+          overflow: visible;
+          position: relative;
+          --mmp-range-state-layer-size: calc(var(--mmp-unit) * 0.6);
+          --mmp-range-label-height: 28px;
         }
         .mmp-media-controls__volume__range {
           -webkit-appearance: none;
@@ -364,18 +387,20 @@ class MiniMediaPlayerMediaControls extends LitElement {
           background: transparent;
           cursor: pointer;
           display: block;
-          height: var(--mmp-unit);
+          height: var(--mmp-range-state-layer-size);
           margin: 0;
           padding: 0;
-          transform: translateY(calc(var(--mmp-unit) * 0.075));
           --mmp-range-fill-color: var(--mmp-accent-color);
           --mmp-range-track-color: var(--mmp-text-color);
           --mmp-range-thumb-size: calc(var(--mmp-unit) * 0.35);
-          --mmp-range-track-height: 3px;
+          --mmp-range-track-height: 4px;
         }
         .mmp-media-controls__volume__range:disabled {
           cursor: default;
           opacity: 0.5;
+        }
+        .mmp-media-controls__volume__range:disabled + .mmp-media-controls__volume__bubble {
+          display: none;
         }
         .mmp-media-controls__volume__range::-webkit-slider-runnable-track {
           background: linear-gradient(
@@ -417,6 +442,77 @@ class MiniMediaPlayerMediaControls extends LitElement {
           border-radius: 50%;
           height: var(--mmp-range-thumb-size);
           width: var(--mmp-range-thumb-size);
+        }
+        .mmp-media-controls__volume__bubble {
+          align-items: center;
+          background: var(
+            --md-slider-label-container-color,
+            var(--mmp-accent-color, var(--md-sys-color-primary, var(--primary-color)))
+          );
+          border-radius: var(--md-sys-shape-corner-full, 9999px);
+          bottom: calc(50% + var(--mmp-range-state-layer-size) / 2);
+          box-sizing: border-box;
+          color: var(
+            --md-slider-label-text-color,
+            var(--md-sys-color-on-primary, var(--text-primary-color, #fff))
+          );
+          display: flex;
+          font-family: var(
+            --md-slider-label-text-font,
+            var(--md-sys-typescale-label-medium-font, var(--md-ref-typeface-plain, Roboto))
+          );
+          font-size: var(
+            --md-slider-label-text-size,
+            var(--md-sys-typescale-label-medium-size, 0.75rem)
+          );
+          font-weight: var(
+            --md-slider-label-text-weight,
+            var(--md-sys-typescale-label-medium-weight, var(--md-ref-typeface-weight-medium, 500))
+          );
+          justify-content: center;
+          left: calc(
+            (var(--mmp-range-state-layer-size) / 2) +
+            ((100% - var(--mmp-range-state-layer-size)) * var(--mmp-range-fraction))
+          );
+          line-height: var(
+            --md-slider-label-text-line-height,
+            var(--md-sys-typescale-label-medium-line-height, 1rem)
+          );
+          min-height: var(--mmp-range-label-height);
+          min-width: var(--mmp-range-label-height);
+          padding: 4px;
+          pointer-events: none;
+          position: absolute;
+          transform: translateX(-50%) scale(0);
+          transform-origin: center bottom;
+          transition: transform 100ms cubic-bezier(0.2, 0, 0, 1);
+          z-index: 3;
+        }
+        .mmp-media-controls__volume__bubble::before,
+        .mmp-media-controls__volume__bubble::after {
+          background: inherit;
+          content: "";
+          display: block;
+          position: absolute;
+        }
+        .mmp-media-controls__volume__bubble::before {
+          bottom: calc(var(--mmp-range-label-height) / -10);
+          height: calc(var(--mmp-range-label-height) / 2);
+          transform: rotate(45deg);
+          width: calc(var(--mmp-range-label-height) / 2);
+        }
+        .mmp-media-controls__volume__bubble::after {
+          border-radius: inherit;
+          inset: 0;
+        }
+        .mmp-media-controls__volume__bubble__content {
+          position: relative;
+          z-index: 1;
+        }
+        .mmp-media-controls__volume__slider:hover .mmp-media-controls__volume__bubble,
+        .mmp-media-controls__volume__slider:focus-within .mmp-media-controls__volume__bubble,
+        .mmp-media-controls__volume__range:active + .mmp-media-controls__volume__bubble {
+          transform: translateX(-50%) scale(1);
         }
         ha-icon-button {
           min-width: var(--mmp-unit);
